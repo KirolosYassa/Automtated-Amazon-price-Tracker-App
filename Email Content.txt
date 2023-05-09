@@ -1,0 +1,14 @@
+
+<html>
+    <body>
+        <div>
+            <h3> 
+                Hey Kiro, Your Product is now under or equal to the expected price you put which is [PRICE]
+            </h3>
+        </div>
+        <hr>
+        <p>
+            You can now go to this website to purchase the Product: [WEBSITE]
+        </p>
+    </body>
+</html>

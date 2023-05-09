@@ -1,23 +1,39 @@
 import requests
-from bs4 import BeautifulSoup 
+from bs4 import BeautifulSoup
+from AmazonProduct import AmazonProduct
+from email.message import EmailMessage
+import os
+from dotenv import load_dotenv
+import smtplib
 
+load_dotenv()
+email = os.getenv("MY_EMAIL")
+passWord = os.getenv("EMAIL_PASSWORD")
+email_to = "kirolosyassa2017@gmail.com"
 
-url = "https://www.amazon.com/BENGOO-G9000-Controller-Cancelling-Headphones/dp/B01H6GUCCQ/ref=sr_1_3?keywords=gaming%2Bheadsets&pd_rd_r=f576e6eb-6cc9-4278-bc52-8513192288ed&pd_rd_w=vwjVA&pd_rd_wg=VIEzn&pf_rd_p=12129333-2117-4490-9c17-6d31baf0582a&pf_rd_r=X9FR0ABG4C9TTE8T7J7J&qid=1683649819&sr=8-3&th=1"
+url = "https://www.amazon.com/SanDisk-MicroSDXC-Memory-Nintendo-Switch/dp/B07QD6R5L7/ref=pd_rhf_d_dp_s_pd_crcbs_sccl_2_3/143-7024595-4034758?pd_rd_w=A3Jga&content-id=amzn1.sym.31346ea4-6dbc-4ac4-b4f3-cbf5f8cab4b9&pf_rd_p=31346ea4-6dbc-4ac4-b4f3-cbf5f8cab4b9&pf_rd_r=1EKPE8J3AFSHGWCMWTYT&pd_rd_wg=4A8Kn&pd_rd_r=8b468908-a908-4a6d-bf56-558177ed296a&pd_rd_i=B07QD6R5L7&psc=1"
+# url = input("Enter your required product on Amazon: ")
+max_product_price = 27
 
-headers = {
-           "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
-           "Accept-Language":"en-GB,en;q=0.9,ar-EG;q=0.8,ar;q=0.7,en-US;q=0.6"
-            }
-
-response = requests.get(url, headers=headers)
-content = response.content
-# print(content)
-with open("amazon.html", "w") as file:
-    file.write(f"""
-               {content}
-               """)
-
-soup = BeautifulSoup(content, 'html.parser')
-whole_prices = soup.find_all("span", class_="a-price-whole")
-product_price = whole_prices[0].get_text()
+product = AmazonProduct(url=url)
+product_price = product.get_product_price()
 print(f"product_price = {product_price}")
+print(f"product_price <= max_product_price ~~~~> {product_price <= max_product_price}")
+
+if product_price <= max_product_price:
+    with open("Email Content.txt", "r") as file:
+        message = file.read()
+
+    message = message.replace("[PRICE]", str(max_product_price))
+    message = message.replace("[WEBSITE]", url)
+
+    msg = EmailMessage()
+    msg["Subject"] = f"Amazon Product Price Alert"
+    msg["From"] = "Amazon Alert"
+    msg["To"] = email_to
+    msg.set_content(message, subtype="html")
+
+    with smtplib.SMTP("smtp.gmail.com", port=587) as connection:
+        connection.starttls()
+        connection.login(user=email, password=passWord)
+        connection.send_message(msg)
